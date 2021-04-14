@@ -8,6 +8,6 @@ class Project {
   int cost;
   int complete_per;
   int pic;
-  Double lng;
-  Double lat;
+  double lng;
+  double lat;
 }

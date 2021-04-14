@@ -1,1 +1,1 @@
-var SERVER_URL = 'http://169.254.195.236:5000';
+var SERVER_URL = 'http://192.168.1.103:5000';

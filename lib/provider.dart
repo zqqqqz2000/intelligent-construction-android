@@ -15,14 +15,14 @@ class Projects extends ChangeNotifier {
 }
 
 class CurrentProject extends ChangeNotifier {
-  Project currentProjects;
+  Project currentProject;
 
   Project getProjects() {
-    return currentProjects;
+    return currentProject;
   }
 
   void setProjects(Project project) {
-    this.currentProjects = project;
+    this.currentProject = project;
     notifyListeners();
   }
 }
