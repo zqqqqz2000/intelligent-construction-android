@@ -17,11 +17,11 @@ class Projects extends ChangeNotifier {
 class CurrentProject extends ChangeNotifier {
   Project currentProject;
 
-  Project getProjects() {
+  Project getProject() {
     return currentProject;
   }
 
-  void setProjects(Project project) {
+  void setProject(Project project) {
     this.currentProject = project;
     notifyListeners();
   }
