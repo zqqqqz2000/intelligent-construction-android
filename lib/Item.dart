@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Project {
   int id;
   String name;
@@ -10,4 +8,13 @@ class Project {
   int pic;
   double lng;
   double lat;
+}
+
+class Process {
+  int id;
+  int pid;
+  String comment;
+  int update_uid;
+  int pic;
+  String date;
 }

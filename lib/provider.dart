@@ -15,14 +15,27 @@ class Projects extends ChangeNotifier {
 }
 
 class CurrentProject extends ChangeNotifier {
-  Project currentProject;
+  Project _currentProject;
 
   Project getProject() {
-    return currentProject;
+    return _currentProject;
   }
 
   void setProject(Project project) {
-    this.currentProject = project;
+    this._currentProject = project;
+    notifyListeners();
+  }
+}
+
+class Processes extends ChangeNotifier {
+  List<Process> _processes = [];
+
+  List<Process> getProcesses() {
+    return _processes;
+  }
+
+  void setProcesses(List<Process> processes) {
+    this._processes = processes;
     notifyListeners();
   }
 }

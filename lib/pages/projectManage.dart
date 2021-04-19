@@ -38,7 +38,8 @@ class ProjectManageState extends State<ProjectManage> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => Projects()),
-        ChangeNotifierProvider(create: (context) => CurrentProject())
+        ChangeNotifierProvider(create: (context) => CurrentProject()),
+        ChangeNotifierProvider(create: (context) => Processes()),
       ],
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -48,6 +49,7 @@ class ProjectManageState extends State<ProjectManage> {
         child: Builder(
           builder: (context) {
             var currentProject = Provider.of<CurrentProject>(context);
+            var processes = context.read<Processes>();
             return Stack(
               children: [
                 Column(
@@ -62,6 +64,7 @@ class ProjectManageState extends State<ProjectManage> {
                           onPressed: () async {
                             var sp = await SharedPreferences.getInstance();
                             var projects = context.read<Projects>();
+                            var processes = context.read<Processes>();
                             var projectDicts = await api(
                                 '/project/get_project_from_uid',
                                 {'page': 1, 'token': sp.getString('token')});
@@ -80,57 +83,8 @@ class ProjectManageState extends State<ProjectManage> {
                               res.add(project);
                             }
                             projects.setProjects(res);
-                            // var projects = context.read<Projects>();
-                            // projects.setProjects(projects);
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) => BottomSheet(
-                                    onClosing: () {},
-                                    builder: (context) {
-                                      return Container(
-                                        height: 400,
-                                        child: ListView(
-                                          children:
-                                              projects.getProjects().map((e) {
-                                            return MaterialButton(
-                                              onPressed: () {
-                                                currentProject.setProject(e);
-                                                Navigator.pop(context);
-                                              },
-                                              child: SizedBox(
-                                                width: double.infinity,
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        e.name,
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        e.describe,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      );
-                                    }));
+                            showModalBottom(
+                                context, projects, currentProject, processes);
                           },
                         ),
                       ],
@@ -139,7 +93,7 @@ class ProjectManageState extends State<ProjectManage> {
                       child: SingleChildScrollView(
                         child: Container(
                           width: double.infinity,
-                          child: ProjectTimeline(),
+                          child: ProjectTimeline(processes),
                         ),
                       ),
                     ),
@@ -245,6 +199,34 @@ class ProjectManageState extends State<ProjectManage> {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(SnackBar(
                                                   content: Text("添加进度成功")));
+                                          Map<String, dynamic> data = {
+                                            'pid':
+                                                currentProject.getProject().id
+                                          };
+                                          var process = await api(
+                                            '/project/get_project_process',
+                                            data,
+                                            withToken: true,
+                                          );
+                                          if (!process['success']) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    content:
+                                                        Text(process['info'])));
+                                            return;
+                                          }
+                                          processes.setProcesses(
+                                              process['processes']
+                                                  .map<Process>((x) {
+                                            var p = Process();
+                                            p.id = x['id'];
+                                            p.comment = x['comment'];
+                                            p.pic = x['pic'];
+                                            p.pid = x['pid'];
+                                            p.update_uid = x['update_uid'];
+                                            p.date = x['date'];
+                                            return p;
+                                          }).toList());
                                         }
                                       },
                                       child: Text('报送进度'),
@@ -267,4 +249,69 @@ class ProjectManageState extends State<ProjectManage> {
       ),
     );
   }
+}
+
+void showModalBottom(context, projects, currentProject, processes) {
+  showModalBottomSheet(
+      context: context,
+      builder: (context) => BottomSheet(
+          onClosing: () {},
+          builder: (context) {
+            List<Widget> widgetList = projects.getProjects().map<Widget>((e) {
+              return MaterialButton(
+                onPressed: () async {
+                  currentProject.setProject(e);
+                  var process = await api(
+                    '/project/get_project_process',
+                    {'pid': e.id},
+                    withToken: true,
+                  );
+                  if (!process['success']) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(process['info'])));
+                    return;
+                  }
+                  processes.setProcesses(process['processes'].map<Process>((x) {
+                    var p = Process();
+                    p.id = x['id'];
+                    p.comment = x['comment'];
+                    p.pic = x['pic'];
+                    p.pid = x['pid'];
+                    p.update_uid = x['update_uid'];
+                    p.date = x['date'];
+                    return p;
+                  }).toList());
+                  Navigator.pop(context);
+                },
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          e.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          e.describe,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList();
+            return Container(
+              height: 400,
+              child: ListView(
+                children: widgetList,
+              ),
+            );
+          }));
 }
