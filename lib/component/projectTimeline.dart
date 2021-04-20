@@ -30,7 +30,7 @@ class ProjectTimeline extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(processesList[index].comment),
-                      Pic(processesList[index].pid, 50, 50),
+                      Pic(processesList[index].pic, 50, 50),
                     ],
                   ),
                 ),

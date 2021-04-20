@@ -49,7 +49,7 @@ class ProjectManageState extends State<ProjectManage> {
         child: Builder(
           builder: (context) {
             var currentProject = Provider.of<CurrentProject>(context);
-            var processes = context.read<Processes>();
+            var processes = Provider.of<Processes>(context);
             return Stack(
               children: [
                 Column(
@@ -199,34 +199,7 @@ class ProjectManageState extends State<ProjectManage> {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(SnackBar(
                                                   content: Text("添加进度成功")));
-                                          Map<String, dynamic> data = {
-                                            'pid':
-                                                currentProject.getProject().id
-                                          };
-                                          var process = await api(
-                                            '/project/get_project_process',
-                                            data,
-                                            withToken: true,
-                                          );
-                                          if (!process['success']) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(SnackBar(
-                                                    content:
-                                                        Text(process['info'])));
-                                            return;
-                                          }
-                                          processes.setProcesses(
-                                              process['processes']
-                                                  .map<Process>((x) {
-                                            var p = Process();
-                                            p.id = x['id'];
-                                            p.comment = x['comment'];
-                                            p.pic = x['pic'];
-                                            p.pid = x['pid'];
-                                            p.update_uid = x['update_uid'];
-                                            p.date = x['date'];
-                                            return p;
-                                          }).toList());
+                                          refreshTimeline(context, processes, currentProject.getProject());
                                         }
                                       },
                                       child: Text('报送进度'),
@@ -251,6 +224,29 @@ class ProjectManageState extends State<ProjectManage> {
   }
 }
 
+void refreshTimeline(context, processes, currProject) async {
+  var process = await api(
+    '/project/get_project_process',
+    {'pid': currProject.id},
+    withToken: true,
+  );
+  if (!process['success']) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(process['info'])));
+    return;
+  }
+  processes.setProcesses(process['processes'].map<Process>((x) {
+    var p = Process();
+    p.id = x['id'];
+    p.comment = x['comment'];
+    p.pic = x['pic'];
+    p.pid = x['pid'];
+    p.update_uid = x['update_uid'];
+    p.date = x['date'];
+    return p;
+  }).toList());
+}
+
 void showModalBottom(context, projects, currentProject, processes) {
   showModalBottomSheet(
       context: context,
@@ -261,26 +257,7 @@ void showModalBottom(context, projects, currentProject, processes) {
               return MaterialButton(
                 onPressed: () async {
                   currentProject.setProject(e);
-                  var process = await api(
-                    '/project/get_project_process',
-                    {'pid': e.id},
-                    withToken: true,
-                  );
-                  if (!process['success']) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(process['info'])));
-                    return;
-                  }
-                  processes.setProcesses(process['processes'].map<Process>((x) {
-                    var p = Process();
-                    p.id = x['id'];
-                    p.comment = x['comment'];
-                    p.pic = x['pic'];
-                    p.pid = x['pid'];
-                    p.update_uid = x['update_uid'];
-                    p.date = x['date'];
-                    return p;
-                  }).toList());
+                  refreshTimeline(context, processes, e);
                   Navigator.pop(context);
                 },
                 child: SizedBox(
