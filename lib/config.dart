@@ -1,2 +1,2 @@
-var SERVER_URL = 'http://192.168.1.110:5000';
-var STATIC_URL = 'http://192.168.1.110:8000';
+var SERVER_URL = 'http://10.100.30.41:5000/';
+var STATIC_URL = 'http://10.100.30.41:8000/';
