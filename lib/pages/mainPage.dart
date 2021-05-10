@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intelligent_construction/pages/projectManage.dart';
+import 'package:provider/provider.dart';
+
+import '../provider.dart';
+import 'chat.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key key}) : super(key: key);
@@ -54,7 +58,12 @@ class MainPageState extends State<MainPage> {
       body: Builder(
         builder: (context) => [
           ProjectManage(),
-          Text('工程通信'),
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (context) => MessagesProvider())
+            ],
+            child: ChatPage(),
+          ),
           Text('工单报送'),
         ][_selected],
       ),

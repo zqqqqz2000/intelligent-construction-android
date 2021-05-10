@@ -18,3 +18,17 @@ class Process {
   int pic;
   String date;
 }
+
+class Message {
+  Message(this.fromSelf, this.content);
+  bool fromSelf;
+  String content;
+}
+
+class ChatUser {
+  int id;
+  int unread;
+  String name;
+  String title;
+  List<Message> chatHis;
+}
